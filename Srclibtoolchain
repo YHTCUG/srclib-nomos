@@ -1,0 +1,11 @@
+{
+  "Tools": [
+    {
+      "Subcmd": "scan-licenses",
+      "Op": "scan",
+      "SourceUnitTypes": [
+        "LicenseUnit"
+      ]
+    }
+  ]
+}

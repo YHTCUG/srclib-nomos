@@ -1,0 +1,100 @@
+#!/usr/bin/env node
+
+/*
+    Srclib-Nomos, a toolchain for Srclib to scan files w/ Nomos License Scanner
+    Copyright (C) 2014 Fossa Inc.
+
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License along
+    with this program; if not, write to the Free Software Foundation, Inc.,
+    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+*/
+
+var BINARY = '../nomos/nomossa',
+		fs = require('fs'),
+		walk = require('fs-walk'),
+		exec = require('child_process').exec; //path to nomos standalone binary
+
+
+var scan_file = function(path, cb) {
+	//TODO: ensure valid file path
+	return exec([BINARY, path].join(' '), function(err, stdout, stderr) {
+		if(err || stderr) return cb(err || stderr);
+		if(stdout.substring(0, 34) != "File myfile.c contains license(s) ") return cb(new Error(stdout));
+		return cb(stdout.substring(34).split(','));
+	});
+}
+
+var parser = require("nomnom");
+
+parser.command('scan-licenses')
+  .option('repo', {
+   	help: "the URI of the repository that contains the directory tree being scanned"
+  })
+  .option('subdir', {
+   	default: ".",
+   	help: "the path of the current directory (in which the scanner is run), relative to the root directory of the repository being scanned"
+  })
+  .callback(function(opts) {
+  	if(!opts.repo) throw new Error("Invalid Repo URI");
+  	var srcunits = [];
+  	walk.files(opts.subdir, function(basedir, filename, stat, next) {
+  		scan_file(basedir + '/' + filename, function(err, license_sigs) {
+  			console.log(license_sigs);
+  			return next();
+  		});
+		}, function(err) {
+		  if(err) throw err;
+		});
+
+    /*srcunits.push({
+	    Name: "",
+	    Type: "LicenseUnit",
+	    Repo: opts.repo,
+	    Globs: "",
+	    Files: [],
+	    Dir: "",
+	    Dependencies: [],
+	    Info: {},
+	    Data: {},
+	    Config: {},
+	    Ops: {}
+		});
+
+		return process.stdout.write(JSON.stringify(srcunits));*/
+  })
+  .help("run the sanity tests")
+
+parser.parse();
+
+//fs walk 
+
+//given: path and url
+
+
+// TOP_LEVEL_LICENSE = null;
+// var files = {};
+//scan directory for all files
+//scan all files for licenses
+//look for top-level indicators of licenses (README*, *LICENSE|LICENCE*, and maybe (NOTICE, COPYING, PATENTS, etc...)
+//check: does nomos work on readmes?
+
+//if so set a TOP_LEVEL_LICENSE as such and then apply that top-level to sub-files that have no license info
+
+// how to find licnese units
+
+// top level LICENSE first; search for in package file and LICENSE files
+// secondary files have independent license; if no license found try to inherit from package-level
+// unlicensed if theres no top level license to inherit from
+// break new licenses into a license unit
+
+// extra data: unrecognized licenses (licenses defined in packages)

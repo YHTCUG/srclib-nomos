@@ -1,0 +1,17 @@
+# Srclib Nomos
+
+Srclib toolchain for license scanning, based off of the Nomos license scanner.  Also does some license inferencing and other stuff.
+
+## Usage
+
+Make the nomos binary and then .  Please edit `nomos/makefile.conf` to pass the build on your system.  
+
+TODO: Possibly vendorize the nomossa binary to avoid building on each new system.
+
+`npm install`
+`cd ./nomos`
+`make CFLAGS=-I/usr/include/glib-2.0` //either omit CFLAGS or edit it to wherever GLIB is on your system (check in cellar if installed with brew on OSX)
+
+## License
+
+GPL v2, see LICENSE for full text
