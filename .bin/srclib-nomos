@@ -46,55 +46,60 @@ parser.command('scan-licenses')
   })
   .callback(function(opts) {
   	if(!opts.repo) throw new Error("Invalid Repo URI");
-  	var srcunits = [];
+  	var file_table = {},
+				license_index = {};
   	walk.files(opts.subdir, function(basedir, filename, stat, next) {
-  		scan_file(basedir + '/' + filename, function(err, license_sigs) {
-  			console.log(license_sigs);
+  		var full_path = basedir + '/' + filename;
+  		scan_file(full_path, function(err, license_sigs) {
+				file_table[full_path] = license_sigs;
+				for(var i=0; i<license_sigs.length; i++) {
+					if(!license_index[license_sigs[i]]) license_index[license_sigs[i]] = [];
+					license_index[license_sigs[i]].push(full_path);
+				}
   			return next();
   		});
 		}, function(err) {
 		  if(err) throw err;
-		});
+		  var srcunits = [],
+		  		keys = Object.keys(license_index);
+		  for(var q=0; q<keys.length; q++) {
+		  	srcunits.push({
+			    Name: keys[q],
+			    Type: "LicenseUnit",
+			    Repo: opts.repo,
+			    Globs: "",
+			    Files: license_index[keys[q]],
+			    Dir: "",
+			    Dependencies: [],
+			    Info: {},
+			    Data: {},
+			    Config: {},
+			    Ops: {}
+				});
+		  }
+		  //todo: license inference and SPDX translation
 
-    /*srcunits.push({
-	    Name: "",
-	    Type: "LicenseUnit",
-	    Repo: opts.repo,
-	    Globs: "",
-	    Files: [],
-	    Dir: "",
-	    Dependencies: [],
-	    Info: {},
-	    Data: {},
-	    Config: {},
-	    Ops: {}
-		});
+		  // TOP_LEVEL_LICENSE = null;
+			// var files = {};
+			//scan directory for all files
+			//scan all files for licenses
+			//look for top-level indicators of licenses (README*, *LICENSE|LICENCE*, and maybe (NOTICE, COPYING, PATENTS, etc...)
+			//check: does nomos work on readmes?
 
-		return process.stdout.write(JSON.stringify(srcunits));*/
+			//if so set a TOP_LEVEL_LICENSE as such and then apply that top-level to sub-files that have no license info
+
+			// how to find licnese units
+
+			// top level LICENSE first; search for in package file and LICENSE files
+			// secondary files have independent license; if no license found try to inherit from package-level
+			// unlicensed if theres no top level license to inherit from
+			// break new licenses into a license unit
+
+			// extra data: unrecognized licenses (licenses defined in packages)
+
+		  return process.stdout.write(JSON.stringify(srcunits));
+		});
   })
   .help("run the sanity tests")
 
 parser.parse();
-
-//fs walk 
-
-//given: path and url
-
-
-// TOP_LEVEL_LICENSE = null;
-// var files = {};
-//scan directory for all files
-//scan all files for licenses
-//look for top-level indicators of licenses (README*, *LICENSE|LICENCE*, and maybe (NOTICE, COPYING, PATENTS, etc...)
-//check: does nomos work on readmes?
-
-//if so set a TOP_LEVEL_LICENSE as such and then apply that top-level to sub-files that have no license info
-
-// how to find licnese units
-
-// top level LICENSE first; search for in package file and LICENSE files
-// secondary files have independent license; if no license found try to inherit from package-level
-// unlicensed if theres no top level license to inherit from
-// break new licenses into a license unit
-
-// extra data: unrecognized licenses (licenses defined in packages)
