@@ -71,7 +71,7 @@ parser.command('scan-licenses')
   	var file_table = {},
 				license_index = {};
   	walk.files(opts.subdir, function(basedir, filename, stat, next) {
-  		var full_path = basedir + '/' + filename;
+  		var full_path = path.join(basedir, filename);
   		scan_file(full_path, function(err, license_sigs) {
   			if(err) return next(err);
 				file_table[full_path] = license_sigs;
