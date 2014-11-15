@@ -37,6 +37,7 @@ ADD . /srclib/srclib-nomos/
 
 #make nomos binary
 WORKDIR /srclib/srclib-nomos/nomos
+RUN make clean
 RUN make CFLAGS=-I/usr/include/glib-2.0
 
 WORKDIR /srclib/srclib-nomos
