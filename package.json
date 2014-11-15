@@ -10,6 +10,7 @@
   "license": "GPL-2.0",
   "dependencies": {
     "fs-walk": "0.0.1",
+    "gitignore-parser": "0.0.1",
     "nomnom": "^1.8.1"
   }
 }

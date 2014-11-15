@@ -25,6 +25,7 @@ var BINARY = __dirname + '/../nomos/nomossa',
 		fs = require('fs'),
 		walk = require('fs-walk'),
 		path = require('path'),
+		gitignore = require('gitignore-parser'),
 		spawn = require('child_process').spawn; 
 
 var scan_file = function(file_path, cb) {
@@ -68,12 +69,31 @@ parser.command('scan-licenses')
   })
   .callback(function(opts) {
   	if(!opts.repo) throw new Error("Invalid Repo URI");
-  	var file_table = {},
+
+	  var gi, gi_path = path.join(opts.subdir, '.gitignore');
+	  if(fs.existsSync(gi_path)) {
+	  	gi = gitignore.compile(fs.readFileSync(gi_path, 'utf8'));
+	  }
+
+  	var ignored_raw = require('../scan_ignore.js'),
+  			ignored_compiled = [],
+  			file_table = {},
 				license_index = {};
+
+		for(var n=0; n<ignored_raw.length; n++) {
+			ignored_compiled.push(new RegExp(ignored_raw[n], 'ig'));
+		}
+
   	walk.files(opts.subdir, function(basedir, filename, stat, next) {
-  		var full_path = path.join(basedir, filename);
+  		var full_path = path.join(basedir, filename),
+  				rel_path = path.relative(opts.subdir, full_path);
   		scan_file(full_path, function(err, license_sigs) {
   			if(err) return next(err);
+  			if(gi.denies(rel_path) === true) return next();
+  			for(var z=0; z<ignored_compiled.length; z++) {
+  				if(rel_path.match(ignored_compiled[z])) return next()
+  			}
+
 				file_table[full_path] = license_sigs;
 				for(var i=0; i<license_sigs.length; i++) {
 					if(!license_index[license_sigs[i]]) license_index[license_sigs[i]] = [];
