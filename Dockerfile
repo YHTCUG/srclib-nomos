@@ -15,7 +15,7 @@
 #    with this program; if not, write to the Free Software Foundation, Inc.,
 #    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-FROM ubuntu:14.04
+FROM ubuntu:16.04
 
 #install deps
 RUN dpkg-reconfigure locales
@@ -39,15 +39,5 @@ ADD . /srclib/srclib-nomos/
 WORKDIR /srclib/srclib-nomos/nomos
 RUN make clean
 RUN make CFLAGS=-I/usr/include/glib-2.0
+RUN ln -s /usr/local/bin/nomos /srclib/srclib-nomos/nomos/nomossa
 
-WORKDIR /srclib/srclib-nomos
-ENV PATH /srclib/srclib-nomos/.bin:$PATH
-
-RUN npm install
-
-RUN useradd -ms /bin/bash srclib
-USER srclib
-
-WORKDIR /src
-
-ENTRYPOINT ["srclib-nomos"]
